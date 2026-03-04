@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+// Use placeholder values at build time; real values come from env at runtime
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder-anon-key-for-build-only'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -12,16 +13,6 @@ export interface Organization {
   부서명: string
   팀명: string
   매장명: string
-}
-
-export interface JsaMaster {
-  id: number
-  작업명: string
-  순번: number
-  세부_작업단계?: string
-  유해위험요인?: string
-  유형?: string
-  위험등급?: string
 }
 
 export interface JsaRecord {
