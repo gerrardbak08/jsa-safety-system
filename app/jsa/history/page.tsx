@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Search, Calendar, User, Building2, AlertTriangle, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Search, Calendar, User, Building2, AlertTriangle, ChevronRight, Download } from 'lucide-react'
 import { JsaRecord } from '@/lib/supabase'
 
 export default function JsaHistoryPage() {
@@ -54,15 +54,31 @@ export default function JsaHistoryPage() {
                 padding: '1.25rem 0',
                 position: 'sticky', top: 0, zIndex: 100,
             }}>
-                <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <Link href="/jsa" style={{ color: 'var(--text-secondary)', display: 'flex' }}>
-                        <ArrowLeft size={20} />
-                    </Link>
-                    <h1 style={{ fontSize: '1.2rem', fontWeight: 700 }}>JSA 작성 이력</h1>
-                    <span style={{
-                        background: 'rgba(59,130,246,0.2)', color: '#93c5fd',
-                        borderRadius: '999px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: 600,
-                    }}>총 {filtered.length}건</span>
+                <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <Link href="/jsa" style={{ color: 'var(--text-secondary)', display: 'flex' }}>
+                            <ArrowLeft size={20} />
+                        </Link>
+                        <h1 style={{ fontSize: '1.2rem', fontWeight: 700 }}>JSA 작성 이력</h1>
+                        <span style={{
+                            background: 'rgba(59,130,246,0.2)', color: '#93c5fd',
+                            borderRadius: '999px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: 600,
+                        }}>총 {filtered.length}건</span>
+                    </div>
+                    <a
+                        href="/api/jsa/export"
+                        download
+                        className="btn"
+                        style={{
+                            padding: '0.5rem 1rem', fontSize: '0.82rem',
+                            background: 'rgba(16,185,129,0.15)',
+                            border: '1px solid rgba(16,185,129,0.4)',
+                            color: '#a7f3d0',
+                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                        }}
+                    >
+                        <Download size={15} /> Excel 다운로드
+                    </a>
                 </div>
             </div>
 
