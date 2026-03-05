@@ -294,13 +294,68 @@ textarea.form-input {
   animation: fadeIn 0.4s ease forwards;
 }
 
-/* Responsive */
+/* ──────────── Responsive / Mobile ──────────── */
 @media (max-width: 768px) {
   .container {
     padding: 0 1rem;
   }
 
   .page-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+  }
+
+  /* 2컬럼 그리드 → 1컬럼 */
+  [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 카드 패딩 축소 */
+  .card {
+    padding: 1rem !important;
+  }
+
+  /* 헤더 버튼 텍스트 숨기기 (아이콘만) */
+  .btn-header-text {
+    display: none;
+  }
+
+  /* 하단 저장 버튼 fixed */
+  .mobile-save-btn {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    z-index: 200;
+  }
+
+  /* 폼 내 textarea 높이 축소 */
+  .form-input[rows] {
+    min-height: 60px;
+  }
+
+  /* 사진 업로드 버튼 크게 */
+  .photo-upload-area {
+    min-height: 120px;
+    font-size: 0.9rem;
+  }
+
+  /* 페이지 하단 여백 (fixed 버튼 공간) */
+  .mobile-content-padding {
+    padding-bottom: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  h1 {
+    font-size: 1rem !important;
   }
 }

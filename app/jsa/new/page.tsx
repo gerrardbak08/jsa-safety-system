@@ -111,6 +111,9 @@ export default function JsaNewPage() {
     const [선택매장, set선택매장] = useState('')
     const [직접입력매장, set직접입력매장] = useState('')
 
+    // 작성자 목록 (API 로드)
+    const [작성자목록, set작성자목록] = useState<string[]>([])
+
     // Form state
     const [작성자, set작성자] = useState('')
     const [직접입력작성자, set직접입력작성자] = useState('')
@@ -136,7 +139,40 @@ export default function JsaNewPage() {
 
     useEffect(() => {
         fetchOrganizations()
+        fetchWorkers()
+
+        // LocalStorage에서 마지막 선택값 복원
+        try {
+            const saved = localStorage.getItem('jsa_last_selection')
+            if (saved) {
+                const s = JSON.parse(saved)
+                if (s.본부) set선택본부(s.본부)
+                if (s.부서) set선택부서(s.부서)
+                if (s.팀) set선택팀(s.팀)
+                if (s.매장) set선택매장(s.매장)
+                if (s.작성자) set작성자(s.작성자)
+                if (s.관리감독자) set관리감독자(s.관리감독자)
+            }
+        } catch { }
     }, [])
+
+    function saveToLocalStorage(updates: Record<string, string>) {
+        try {
+            const existing = JSON.parse(localStorage.getItem('jsa_last_selection') || '{}')
+            localStorage.setItem('jsa_last_selection', JSON.stringify({ ...existing, ...updates }))
+        } catch { }
+    }
+
+    async function fetchWorkers() {
+        try {
+            const res = await fetch('/api/workers')
+            const data = await res.json()
+            if (data.data && data.data.length > 0) {
+                set작성자목록(data.data.map((w: any) => w.이름))
+            }
+            // fallback: workers 테이블 없으면 기존 하드코딩 목록 유지
+        } catch { }
+    }
 
     function handleMasterWorkSelect(workName: string) {
         set선택작업명(workName)
@@ -367,7 +403,13 @@ export default function JsaNewPage() {
                                 <select
                                     className="form-input"
                                     value={선택본부}
-                                    onChange={e => { set선택본부(e.target.value); set선택부서(''); set선택팀(''); set선택매장('') }}
+                                    onChange={e => {
+                                        set선택본부(e.target.value)
+                                        set선택부서('')
+                                        set선택팀('')
+                                        set선택매장('')
+                                        saveToLocalStorage({ 본부: e.target.value, 부서: '', 팀: '', 매장: '' })
+                                    }}
                                 >
                                     <option value="">-- 선택 --</option>
                                     {본부목록.map(b => <option key={b} value={b}>{b}</option>)}
@@ -381,7 +423,12 @@ export default function JsaNewPage() {
                                 <select
                                     className="form-input"
                                     value={선택부서}
-                                    onChange={e => { set선택부서(e.target.value); set선택팀(''); set선택매장('') }}
+                                    onChange={e => {
+                                        set선택부서(e.target.value)
+                                        set선택팀('')
+                                        set선택매장('')
+                                        saveToLocalStorage({ 부서: e.target.value, 팀: '', 매장: '' })
+                                    }}
                                     disabled={!선택본부}
                                 >
                                     <option value="">-- 선택 --</option>
@@ -395,7 +442,11 @@ export default function JsaNewPage() {
                                 <select
                                     className="form-input"
                                     value={선택팀}
-                                    onChange={e => { set선택팀(e.target.value); set선택매장('') }}
+                                    onChange={e => {
+                                        set선택팀(e.target.value)
+                                        set선택매장('')
+                                        saveToLocalStorage({ 팀: e.target.value, 매장: '' })
+                                    }}
                                     disabled={!선택부서}
                                 >
                                     <option value="">-- 선택 --</option>
@@ -410,7 +461,10 @@ export default function JsaNewPage() {
                                     <select
                                         className="form-input"
                                         value={선택매장}
-                                        onChange={e => set선택매장(e.target.value)}
+                                        onChange={e => {
+                                            set선택매장(e.target.value)
+                                            saveToLocalStorage({ 매장: e.target.value })
+                                        }}
                                         disabled={!선택팀}
                                     >
                                         <option value="">-- 선택 --</option>
@@ -439,9 +493,20 @@ export default function JsaNewPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div className="form-group">
                             <label className="form-label">작성자 *</label>
-                            <select className="form-input" value={작성자} onChange={e => set작성자(e.target.value)}>
+                            <select
+                                className="form-input"
+                                value={작성자}
+                                onChange={e => {
+                                    set작성자(e.target.value)
+                                    saveToLocalStorage({ 작성자: e.target.value })
+                                }}
+                            >
                                 <option value="">-- 선택 --</option>
-                                {WORKERS.map(w => <option key={w} value={w}>{w}</option>)}
+                                {작성자목록.length > 0
+                                    ? 작성자목록.map(w => <option key={w} value={w}>{w}</option>)
+                                    : WORKERS.map(w => <option key={w} value={w}>{w}</option>)
+                                }
+                                <option value="직접 입력">직접 입력</option>
                             </select>
                         </div>
 
@@ -608,6 +673,7 @@ export default function JsaNewPage() {
                                             ref={el => { fileInputRefs.current[idx] = el }}
                                             type="file"
                                             accept="image/*"
+                                            capture="environment"
                                             style={{ display: 'none' }}
                                             onChange={e => {
                                                 const file = e.target.files?.[0]

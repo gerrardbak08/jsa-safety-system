@@ -10,6 +10,8 @@ export default function JsaHistoryPage() {
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [filterGrade, setFilterGrade] = useState('')
+    const [dateFrom, setDateFrom] = useState('')
+    const [dateTo, setDateTo] = useState('')
 
     useEffect(() => { fetchAll() }, [])
 
@@ -37,7 +39,10 @@ export default function JsaHistoryPage() {
             g.작업명?.toLowerCase().includes(search.toLowerCase()) ||
             g.작성자?.toLowerCase().includes(search.toLowerCase())
         const matchGrade = !filterGrade || g.위험등급 === filterGrade
-        return matchSearch && matchGrade
+        const recDate = g.created_at ? g.created_at.slice(0, 10) : ''
+        const matchFrom = !dateFrom || recDate >= dateFrom
+        const matchTo = !dateTo || recDate <= dateTo
+        return matchSearch && matchGrade && matchFrom && matchTo
     })
 
     const riskBadge = (grade?: string) => {
@@ -83,7 +88,7 @@ export default function JsaHistoryPage() {
             </div>
 
             <div className="container" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
                         <Search size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                         <input
@@ -99,6 +104,28 @@ export default function JsaHistoryPage() {
                         <option value="중">주의 (중)</option>
                         <option value="하">안전 (하)</option>
                     </select>
+                </div>
+                {/* 날짜 범위 필터 */}
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', flexShrink: 0 }}>기간:</span>
+                    <input
+                        type="date" className="form-input"
+                        value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                        style={{ maxWidth: '160px' }}
+                    />
+                    <span style={{ color: 'var(--text-secondary)' }}>~</span>
+                    <input
+                        type="date" className="form-input"
+                        value={dateTo} onChange={e => setDateTo(e.target.value)}
+                        style={{ maxWidth: '160px' }}
+                    />
+                    {(dateFrom || dateTo) && (
+                        <button
+                            className="btn btn-secondary"
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
+                            onClick={() => { setDateFrom(''); setDateTo('') }}
+                        >초기화</button>
+                    )}
                 </div>
 
                 {loading ? (

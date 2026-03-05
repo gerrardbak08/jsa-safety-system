@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase, JsaRecord } from '@/lib/supabase'
-import { ClipboardList, Plus, History, ArrowLeft, Calendar, User, Building2 } from 'lucide-react'
+import { ClipboardList, Plus, History, ArrowLeft, Calendar, User, Building2, BarChart2 } from 'lucide-react'
 
 export default function JsaPage() {
     const [records, setRecords] = useState<JsaRecord[]>([])
@@ -103,17 +103,27 @@ export default function JsaPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '2.5rem' }}>
                     <Link href="/jsa/new" style={{ textDecoration: 'none' }}>
-                        <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '1rem' }}>
+                        <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '1rem', flexDirection: 'column', gap: '0.25rem', height: '80px', fontSize: '0.85rem' }}>
                             <Plus size={20} />
-                            신규 위험성평가 작성
+                            신규 작성
                         </button>
                     </Link>
                     <Link href="/jsa/history" style={{ textDecoration: 'none' }}>
-                        <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '1rem' }}>
+                        <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '1rem', flexDirection: 'column', gap: '0.25rem', height: '80px', fontSize: '0.85rem' }}>
                             <History size={20} />
-                            작성 이력 보기
+                            작성 이력
+                        </button>
+                    </Link>
+                    <Link href="/jsa/dashboard" style={{ textDecoration: 'none' }}>
+                        <button className="btn" style={{
+                            width: '100%', justifyContent: 'center', padding: '1rem',
+                            flexDirection: 'column', gap: '0.25rem', height: '80px', fontSize: '0.85rem',
+                            background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)', color: '#c4b5fd',
+                        }}>
+                            <BarChart2 size={20} />
+                            현황 대시보드
                         </button>
                     </Link>
                 </div>
