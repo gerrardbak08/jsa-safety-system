@@ -35,6 +35,21 @@ export async function POST(req: NextRequest) {
             .select()
 
         if (error) throw error
+
+        // 단계번호 1 (첫 번째 단계)일 때만 SMS 발송 (JSA 제출 알림)
+        if (body.단계번호 === 1) {
+            fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/sms`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    작업명: body.작업명,
+                    매장명: body.매장명,
+                    작성자: body.작성자,
+                    위험등급: body.위험등급,
+                }),
+            }).catch(err => console.error('SMS notification failed (non-critical):', err))
+        }
+
         return NextResponse.json({ data: data[0] })
     } catch (error) {
         return NextResponse.json({ error: 'Failed to save JSA record' }, { status: 500 })
