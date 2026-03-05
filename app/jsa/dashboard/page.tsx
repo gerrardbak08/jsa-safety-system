@@ -85,7 +85,7 @@ function DeptProgressCard({ dept, submittedStores, totalStores, gradeBreakdown, 
                             borderRadius: '999px', padding: '0.1rem 0.45rem', fontSize: '0.67rem', fontWeight: 600,
                         }}>⚠ 위험 {highRisk}</span>
                     )}
-                    <span style={{ color: '#60a5fa', fontWeight: 700, fontSize: '0.82rem' }}>{jsaCount}건</span>
+                    <span style={{ color: pct >= 50 ? '#60a5fa' : '#a78bfa', fontWeight: 700, fontSize: '0.85rem' }}>진행률 {pct}%</span>
                 </div>
             </div>
 
@@ -101,17 +101,15 @@ function DeptProgressCard({ dept, submittedStores, totalStores, gradeBreakdown, 
                                 : 'linear-gradient(90deg, #6366f1, #8b5cf6)',
                     }} />
                 </div>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: pct >= 50 ? '#60a5fa' : '#a78bfa', flexShrink: 0, minWidth: '40px', textAlign: 'right' }}>
-                    {pct}%
-                </span>
             </div>
 
             {/* 하단: 매장 제출 현황 + 위험등급 배지 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.67rem', color: '#64748b' }}>
-                    {submittedStores}개 매장 / 전체 {totalStores}개
+                    {submittedStores}개 매장 제출 / 전체 {totalStores}개
                 </span>
-                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.67rem', color: '#64748b', marginRight: '4px' }}>총 {jsaCount}건</span>
                     {(['상', '중', '하'] as const).map(g => {
                         const cnt = gradeBreakdown[g] || 0
                         return cnt > 0 ? (
@@ -179,9 +177,20 @@ export default function JsaDashboardPage() {
             deptJsaCount.set(dept, (deptJsaCount.get(dept) || 0) + 1)
         })
 
-        // 부서 목록 정렬 (JSA 건수 내림차순)
-        const deptList = Array.from(deptSubmittedStores.keys())
-            .sort((a, b) => (deptJsaCount.get(b) || 0) - (deptJsaCount.get(a) || 0))
+        // 부서 목록: DEPT_TOTAL_STORES 기반 전 부서 나열 (JSA 미제출 부서도 포함)
+        // 진행률(제출매장/전체매장) 높은 순 → JSA건수 순으로 정렬
+        const allDepts = Object.keys(DEPT_TOTAL_STORES)
+        allDepts.forEach(dept => {
+            if (!deptSubmittedStores.has(dept)) deptSubmittedStores.set(dept, new Set())
+            if (!deptGrades.has(dept)) deptGrades.set(dept, {})
+            if (!deptJsaCount.has(dept)) deptJsaCount.set(dept, 0)
+        })
+        const deptList = allDepts.sort((a, b) => {
+            const pctA = (deptSubmittedStores.get(a)?.size ?? 0) / Math.max(DEPT_TOTAL_STORES[a], 1)
+            const pctB = (deptSubmittedStores.get(b)?.size ?? 0) / Math.max(DEPT_TOTAL_STORES[b], 1)
+            if (pctB !== pctA) return pctB - pctA
+            return (deptJsaCount.get(b) || 0) - (deptJsaCount.get(a) || 0)
+        })
 
         // ── 위험등급 분포 (row 단위) ──
         const gradeCounts: Record<string, number> = {}
