@@ -48,7 +48,7 @@ JSA Safety System`
 
         const results = await Promise.allSettled(
             targets.map(async (to) => {
-                const res = await fetch('https://api.coolsms.co.kr/messages/v4/send', {
+                const res = await fetch('https://api.solapi.co.kr/messages/v4/send', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
