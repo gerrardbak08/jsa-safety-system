@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -232,7 +232,13 @@ export default function JsaNewPage() {
         }
     }
 
-    async function handleSave() {
+    // 중복 저장 완전 방지용 ref
+    const submittedRef = useRef(false)
+
+    const handleSave = useCallback(async () => {
+        // 이미 저장 중이거나 이미 제출된 경우 즉시 차단
+        if (submittedRef.current || saving) return
+
         const 매장 = 선택매장 || 직접입력매장
         const 작성자명 = 작성자 === '직접 입력' ? 직접입력작성자 : 작성자
 
@@ -245,6 +251,8 @@ export default function JsaNewPage() {
             return
         }
 
+        // 즉시 플래그 설정 (비동기 전에)
+        submittedRef.current = true
         setSaving(true)
         setSaveError('')
 
@@ -281,11 +289,12 @@ export default function JsaNewPage() {
 
             router.push('/jsa/history')
         } catch (err) {
+            submittedRef.current = false  // 실패 시 재시도 허용
             setSaveError('저장 중 오류가 발생했습니다. 다시 시도해주세요.')
         } finally {
             setSaving(false)
         }
-    }
+    }, [saving, 선택매장, 직접입력매장, 작성자, 직접입력작성자, 작업명, steps, 선택본부, 선택부서, 선택팀, 관리감독자, 참여근로자, 작업일시])
 
     const riskColor = (grade?: string) => {
         if (grade === '상') return { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#fca5a5' }
