@@ -834,6 +834,52 @@ export default function JsaNewPage() {
                                     ) : (
                                         <div onClick={() => fileInputAfterRefs.current[idx]?.click()} style={{ height: '60px', border: '1px dashed #34d39944', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', fontSize: '0.72rem' }}>사진 없음 (클릭하여 추가)</div>
                                     )}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.5rem', marginTop: '0.75rem' }}>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label" style={{ fontSize: '0.7rem' }}>조치 후 위험등급</label>
+                                            <select
+                                                className="form-input"
+                                                style={{ fontSize: '0.8rem', padding: '0.5rem' }}
+                                                value={step.조치후위험등급 ?? ''}
+                                                onChange={e => updateStep(idx, { 조치후위험등급: e.target.value })}
+                                            >
+                                                <option value="">선택</option>
+                                                <option value="상">상</option>
+                                                <option value="중">중</option>
+                                                <option value="하">하</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label" style={{ fontSize: '0.7rem' }}>개선대책</label>
+                                            <textarea
+                                                className="form-input"
+                                                style={{ fontSize: '0.8rem', padding: '0.5rem', minHeight: '38px', resize: 'none' }}
+                                                value={step.개선대책 ?? step.분석결과?.개선대책 ?? ''}
+                                                onChange={e => updateStep(idx, { 개선대책: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label" style={{ fontSize: '0.7rem' }}>예산사용내역</label>
+                                            <input
+                                                type="text"
+                                                className="form-input"
+                                                placeholder="예: 수리비 5만원"
+                                                style={{ fontSize: '0.8rem', padding: '0.5rem' }}
+                                                value={step.예산사용내역 ?? ''}
+                                                onChange={e => updateStep(idx, { 예산사용내역: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label" style={{ fontSize: '0.7rem' }}>완료일자</label>
+                                            <input
+                                                type="date"
+                                                className="form-input"
+                                                style={{ fontSize: '0.8rem', padding: '0.5rem' }}
+                                                value={step.조치완료일자 ?? ''}
+                                                onChange={e => updateStep(idx, { 조치완료일자: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* AI 분석 버튼 */}
