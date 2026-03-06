@@ -103,14 +103,20 @@ interface OrgHierarchy {
 interface WorkStep {
     단계번호: number
     작업내용: string
-    // 조치 전 사진 (분석용)
+    // 조치 전
     이미지파일?: File
     이미지미리보기?: string
     이미지URL?: string
-    // 조치 후 사진
+    조치전위험등급?: string
+    유해위험요인?: string
+    // 조치 후
     조치후이미지파일?: File
     조치후이미지미리보기?: string
     조치후이미지URL?: string
+    조치후위험등급?: string
+    개선대책?: string
+    예산사용내역?: string
+    조치완료일자?: string
     분석중: boolean
     분석결과?: {
         위험등급?: string
@@ -373,10 +379,14 @@ export default function JsaNewPage() {
                     사진_url: step.이미지URL || null,
                     사진_조치전_url: step.이미지URL || null,
                     사진_조치후_url: step.조치후이미지URL || null,
-                    유해위험요인: step.분석결과?.유해위험요인 || null,
-                    위험등급: step.분석결과?.위험등급 || null,
+                    유해위험요인: step.유해위험요인 || step.분석결과?.유해위험요인 || null,
+                    위험등급: step.조치전위험등급 || step.분석결과?.위험등급 || null,
+                    조치전위험등급: step.조치전위험등급 || step.분석결과?.위험등급 || null,
+                    조치후위험등급: step.조치후위험등급 || null,
+                    예산사용내역: step.예산사용내역 || null,
+                    개선조치완료일자: step.조치완료일자 || null,
                     유형: step.분석결과?.유형 || null,
-                    개선대책: step.분석결과?.개선대책 || null,
+                    개선대책: step.개선대책 || step.분석결과?.개선대책 || null,
                     ai_분석결과: step.분석결과?.ai_분석결과 || null,
                 }
 
@@ -754,6 +764,31 @@ export default function JsaNewPage() {
                                         <div onClick={() => fileInputRefs.current[idx]?.click()} style={{ height: '60px', border: '1px dashed #f59e0b44', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', fontSize: '0.72rem' }}>사진 없음 (클릭하여 추가)</div>
                                     )}
                                 </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.5rem', marginTop: '0.75rem' }}>
+                                    <div className="form-group" style={{ marginBottom: 0 }}>
+                                        <label className="form-label" style={{ fontSize: '0.7rem' }}>위험등급</label>
+                                        <select
+                                            className="form-input"
+                                            style={{ fontSize: '0.8rem', padding: '0.5rem' }}
+                                            value={step.조치전위험등급 ?? step.분석결과?.위험등급 ?? ''}
+                                            onChange={e => updateStep(idx, { 조치전위험등급: e.target.value })}
+                                        >
+                                            <option value="">선택</option>
+                                            <option value="상">상</option>
+                                            <option value="중">중</option>
+                                            <option value="하">하</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group" style={{ marginBottom: 0 }}>
+                                        <label className="form-label" style={{ fontSize: '0.7rem' }}>유해위험요인</label>
+                                        <textarea
+                                            className="form-input"
+                                            style={{ fontSize: '0.8rem', padding: '0.5rem', minHeight: '38px', resize: 'none' }}
+                                            value={step.유해위험요인 ?? step.분석결과?.유해위험요인 ?? ''}
+                                            onChange={e => updateStep(idx, { 유해위험요인: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
 
                                 {/* ── 조치 후 사진 ── */}
                                 <div style={{ marginBottom: step.분석결과 ? '1rem' : '0.75rem' }}>
@@ -859,43 +894,6 @@ export default function JsaNewPage() {
                                                 {step.분석결과.ai_분석결과}
                                             </div>
                                         )}
-
-                                        {/* Manual override inputs */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.75rem' }}>
-                                            <div className="form-group">
-                                                <label className="form-label" style={{ fontSize: '0.7rem' }}>위험등급</label>
-                                                <select
-                                                    className="form-input"
-                                                    style={{ fontSize: '0.8rem', padding: '0.5rem' }}
-                                                    value={step.분석결과?.위험등급 || ''}
-                                                    onChange={e => updateStep(idx, { 분석결과: { ...step.분석결과, 위험등급: e.target.value } })}
-                                                >
-                                                    <option value="">선택</option>
-                                                    <option value="상">상</option>
-                                                    <option value="중">중</option>
-                                                    <option value="하">하</option>
-                                                </select>
-                                            </div>
-                                            <div className="form-group">
-                                                <label className="form-label" style={{ fontSize: '0.7rem' }}>유형 수정</label>
-                                                <input
-                                                    type="text"
-                                                    className="form-input"
-                                                    style={{ fontSize: '0.8rem', padding: '0.5rem' }}
-                                                    value={step.분석결과?.유형 || ''}
-                                                    onChange={e => updateStep(idx, { 분석결과: { ...step.분석결과, 유형: e.target.value } })}
-                                                />
-                                            </div>
-                                            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                                                <label className="form-label" style={{ fontSize: '0.7rem' }}>개선대책 수정</label>
-                                                <textarea
-                                                    className="form-input"
-                                                    style={{ fontSize: '0.8rem', padding: '0.5rem', minHeight: '60px' }}
-                                                    value={step.분석결과?.개선대책 || ''}
-                                                    onChange={e => updateStep(idx, { 분석결과: { ...step.분석결과, 개선대책: e.target.value } })}
-                                                />
-                                            </div>
-                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -927,6 +925,6 @@ export default function JsaNewPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 1s linear infinite; }
       `}</style>
-        </div>
+        </div >
     )
 }
