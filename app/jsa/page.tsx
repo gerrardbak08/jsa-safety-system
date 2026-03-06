@@ -16,22 +16,44 @@ export default function JsaPage() {
 
     async function fetchRecentRecords() {
         try {
+            // 전체 갯수 및 이번달 건수 조회를 위한 카운트 쿼리
+            const now = new Date()
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+
+            const { count: totalCount } = await supabase
+                .from('jsa_records')
+                .select('*', { count: 'exact', head: true })
+
+            const { count: thisMonthCount } = await supabase
+                .from('jsa_records')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', monthStart)
+
+            // 중복 제거를 위해 충분한 양의 최신 데이터 조회 (동일 평가 건 묶기)
             const { data, error } = await supabase
                 .from('jsa_records')
                 .select('*')
                 .order('created_at', { ascending: false })
-                .limit(5)
+                .limit(50)
 
             if (error) throw error
 
-            const now = new Date()
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-            const thisMonth = (data || []).filter(r =>
-                r.created_at && new Date(r.created_at) >= monthStart
-            ).length
+            // 작업명 + 매장명 + 날짜(YYYY-MM-DD)를 조합하여 고유 키로 판단 (중복 제거용)
+            const uniqueRecords = []
+            const seenKeys = new Set()
 
-            setRecords(data || [])
-            setStats({ total: data?.length || 0, thisMonth })
+            for (const record of (data || [])) {
+                const dateStr = record.created_at ? record.created_at.split('T')[0] : 'nodate'
+                const key = `${record.작업명}_${record.매장명}_${dateStr}`
+                if (!seenKeys.has(key)) {
+                    seenKeys.add(key)
+                    uniqueRecords.push(record)
+                    if (uniqueRecords.length >= 5) break // 5건만 표시
+                }
+            }
+
+            setRecords(uniqueRecords)
+            setStats({ total: totalCount || 0, thisMonth: thisMonthCount || 0 })
         } catch (err) {
             console.error('Error fetching records:', err)
         } finally {
