@@ -14,8 +14,59 @@ export default function AccidentInvestigationPage() {
   const [team, setTeam] = useState('')
   const [store, setStore] = useState('')
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  
+  // Accident Detail States
+  const [accidentDate, setAccidentDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [accidentType, setAccidentType] = useState('')
+  const [accidentContent, setAccidentContent] = useState('')
+  const [agency, setAgency] = useState('')
+  const [hazard, setHazard] = useState('')
+  const [riskGrade, setRiskGrade] = useState('상')
+  const [status, setStatus] = useState('미조치')
+  const [comment, setComment] = useState('')
+  
+  const [isLoading, setIsLoading] = useState(false)
 
   const inspectors = ['Kang (안전)', 'Park (보건)', 'Park (안전)', 'Seo (안전)', 'Yoo (안전)', 'Yoon (보건)']
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      const payload = {
+        checkDate: date,
+        inspector,
+        hq,
+        dept,
+        team,
+        store,
+        accidentDate,
+        accidentType,
+        accidentContent,
+        agency,
+        hazard,
+        risk: riskGrade,
+        status,
+        comment,
+        imgAgency: '', // photo URLs handles later via Supabase Storage
+        imgAction: '',
+      };
+
+      const res = await fetch('/api/accident', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || '저장 실패');
+
+      setCurrentStep('stepAccident_Success');
+    } catch (err: any) {
+      alert('저장 중 오류가 발생했습니다:\n' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <div className="container min-h-screen relative pb-20">
@@ -97,18 +148,18 @@ export default function AccidentInvestigationPage() {
              </div>
              
              <div className="jsa-label" style={{ fontSize: '13px', marginTop: '10px' }}>📅 사고 발생일</div>
-             <input type="date" style={{ marginBottom: '5px', height: '40px' }} />
+             <input type="date" value={accidentDate} onChange={e => setAccidentDate(e.target.value)} style={{ marginBottom: '5px', height: '40px' }} />
              
              <div className="jsa-label" style={{ fontSize: '13px' }}>🚨 재해 유형</div>
-             <input type="text" placeholder="예: 넘어짐, 베임, 끼임 등" style={{ marginBottom: '5px', height: '40px' }} />
+             <input type="text" value={accidentType} onChange={e => setAccidentType(e.target.value)} placeholder="예: 넘어짐, 베임, 끼임 등" style={{ marginBottom: '5px', height: '40px' }} />
              
              <div className="jsa-label" style={{ fontSize: '13px' }}>📝 사고 내용</div>
-             <textarea className="remark" rows={2} placeholder="사고 발생 경위를 상세히 입력하세요."></textarea>
+             <textarea className="remark" value={accidentContent} onChange={e => setAccidentContent(e.target.value)} rows={2} placeholder="사고 발생 경위를 상세히 입력하세요."></textarea>
           </div>
 
           <div className="q-card" style={{ borderLeft: '5px solid #c62828' }}>
              <div className="jsa-label" style={{ marginTop: 0 }}>🔍 사고원인 (물질/설비/개인부주의 등)</div>
-             <input type="text" placeholder="예: 사다리, 롤테이너, 칼 등" style={{ marginBottom: '10px' }} />
+             <input type="text" value={agency} onChange={e => setAgency(e.target.value)} placeholder="예: 사다리, 롤테이너, 칼 등" style={{ marginBottom: '10px' }} />
              
              <div className="jsa-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>📸 기인물 사진</span>
@@ -116,10 +167,10 @@ export default function AccidentInvestigationPage() {
              </div>
              
              <div className="jsa-label">⚠️ 유해위험요인</div>
-             <textarea className="remark" rows={3} placeholder="어떤 점이 위험했는지 작성하세요."></textarea>
+             <textarea className="remark" value={hazard} onChange={e => setHazard(e.target.value)} rows={3} placeholder="어떤 점이 위험했는지 작성하세요."></textarea>
              
              <div className="jsa-label">📊 위험등급</div>
-             <select>
+             <select value={riskGrade} onChange={e => setRiskGrade(e.target.value)}>
                 <option value="상">상 (즉시 개선 필요)</option>
                 <option value="중">중 (계획 개선)</option>
                 <option value="하">하 (현상 유지/관리)</option>
@@ -128,7 +179,7 @@ export default function AccidentInvestigationPage() {
 
           <div className="q-card" style={{ borderLeft: '5px solid #ff8f00' }}>
              <div className="jsa-label" style={{ marginTop: 0 }}>✅ 이행 상태 확인</div>
-             <select>
+             <select value={status} onChange={e => setStatus(e.target.value)}>
                 <option value="조치완료">조치 완료 (양호)</option>
                 <option value="진행중">개선 진행 중</option>
                 <option value="미조치">미조치 (즉시 조치 요망)</option>
@@ -140,11 +191,13 @@ export default function AccidentInvestigationPage() {
              </div>
              
              <div className="jsa-label">📝 점검 의견</div>
-             <textarea className="remark" rows={2} placeholder="점검자 의견을 입력하세요."></textarea>
+             <textarea className="remark" value={comment} onChange={e => setComment(e.target.value)} rows={2} placeholder="점검자 의견을 입력하세요."></textarea>
           </div>
 
           <div className="btn-area">
-            <button type="button" className="btn-main" onClick={() => setCurrentStep('stepAccident_Success')} style={{ background: '#c62828' }}>💾 점검 결과 저장</button>
+            <button type="button" className="btn-main" disabled={isLoading} onClick={handleSave} style={{ background: '#c62828' }}>
+               {isLoading ? '저장 중...' : '💾 점검 결과 저장'}
+            </button>
             <button type="button" className="btn-sub" onClick={() => setCurrentStep('stepAccident_Start')}>⬅ 이전 화면으로 돌아가기</button>
           </div>
         </div>

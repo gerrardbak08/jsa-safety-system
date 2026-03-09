@@ -15,7 +15,52 @@ export default function AiAnalysisPage() {
   const [store, setStore] = useState('')
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
 
+  // AI Detail States
+  const [taskName, setTaskName] = useState('')
+  const [grade, setGrade] = useState('')
+  const [totalScore, setTotalScore] = useState('')
+  const [fullText, setFullText] = useState('')
+  const [comment, setComment] = useState('')
+  const [imageB64, setImageB64] = useState('')
+
+  const [isLoading, setIsLoading] = useState(false)
+
   const inspectors = ['Kang (안전)', 'Park (보건)', 'Park (안전)', 'Seo (안전)', 'Yoo (안전)', 'Yoon (보건)']
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      const payload = {
+        date,
+        inspector,
+        hq,
+        dept,
+        team,
+        store,
+        taskName,
+        totalScore,
+        grade,
+        fullText,
+        comment,
+        imageB64
+      };
+
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || '저장 실패');
+
+      setCurrentStep('stepAI_Success');
+    } catch (err: any) {
+      alert('저장 중 오류가 발생했습니다:\n' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <div className="container min-h-screen relative pb-20">
@@ -69,7 +114,7 @@ export default function AiAnalysisPage() {
           </div>
           
           <div className="jsa-label">🛠️ 2. 대상 작업명</div>
-          <input type="text" placeholder="예: 매대 하단 진열, 음료 박스 하차 등" />
+          <input type="text" value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="예: 매대 하단 진열, 음료 박스 하차 등" />
 
           <div className="jsa-label">⚖️ 3. 취급 물품 무게</div>
           <select>
@@ -100,12 +145,12 @@ export default function AiAnalysisPage() {
             </select>
           </div>
 
-          <textarea rows={10} placeholder="메장 정보를 검색하고 사진을 올리면 AI가 분석합니다." style={{ width: '100%', padding: '15px', borderRadius: '10px', border: '1px solid #dadce0', background: '#f8f9fa', fontWeight: 'bold', fontSize: '14px', lineHeight: 1.6, resize: 'none', boxSizing: 'border-box' }} readOnly></textarea>
+          <textarea rows={10} value={fullText} onChange={e => setFullText(e.target.value)} placeholder="메장 정보를 검색하고 사진을 올리면 AI가 분석합니다." style={{ width: '100%', padding: '15px', borderRadius: '10px', border: '1px solid #dadce0', background: '#f8f9fa', fontWeight: 'bold', fontSize: '14px', lineHeight: 1.6, resize: 'none', boxSizing: 'border-box' }}></textarea>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
               <div className="jsa-label">📊 위험 등급</div>
-              <select>
+              <select value={grade} onChange={e => setGrade(e.target.value)}>
                 <option value="">-- 등급 --</option>
                 <option value="상">상 (개선 필요)</option>
                 <option value="중">중 (계획 개선)</option>
@@ -114,15 +159,17 @@ export default function AiAnalysisPage() {
             </div>
             <div>
               <div className="jsa-label">💯 위험도 점수</div>
-              <input type="text" placeholder="AI 자동 계산" style={{ background: '#f1f3f4', fontWeight: 'bold', color: '#c62828', textAlign: 'center' }} readOnly />
+              <input type="text" value={totalScore} onChange={e => setTotalScore(e.target.value)} placeholder="AI 자동 계산" style={{ background: '#f1f3f4', fontWeight: 'bold', color: '#c62828', textAlign: 'center' }} />
             </div>
           </div>
 
           <div className="jsa-label">📝 점검자 종합 의견</div>
-          <textarea className="remark" rows={3} placeholder="AI 분석 결과를 바탕으로 한 개선 대책을 적어주세요."></textarea>
+          <textarea className="remark" value={comment} onChange={e => setComment(e.target.value)} rows={3} placeholder="AI 분석 결과를 바탕으로 한 개선 대책을 적어주세요."></textarea>
 
           <div className="btn-area">
-            <button type="button" className="btn-main" onClick={() => setCurrentStep('stepAI_Success')} style={{ background: '#8e24aa' }}>🚀 AI 분석 결과 저장</button>
+            <button type="button" className="btn-main" disabled={isLoading} onClick={handleSave} style={{ background: '#8e24aa' }}>
+                {isLoading ? '분석 저장 중...' : '🚀 AI 분석 결과 저장'}
+            </button>
             <button type="button" className="btn-sub" onClick={() => setCurrentStep('stepAI_Start')}>◀ 이전 화면으로 돌아가기</button>
           </div>
         </div>

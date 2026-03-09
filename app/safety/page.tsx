@@ -15,6 +15,9 @@ export default function SafetyInspectionPage() {
   const [store, setStore] = useState('')
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [currentCategory, setCurrentCategory] = useState('')
+  
+  // Form State
+  const [isLoading, setIsLoading] = useState(false)
 
   const inspectors = ['Kang (안전)', 'Park (안전)', 'Yoo (안전)', 'Seo (안전)', 'Park (보건)', 'Yoon (보건)']
   const categories = ["TBM", "넘어짐", "물체맞음", "떨어짐", "베임(칼)", "끼임", "깔림", "무리한동작", "기타 건강장해", "기타사항"]
@@ -30,6 +33,46 @@ export default function SafetyInspectionPage() {
   }
 
   const hqList = ['강북영업본부', '강남영업본부'] // Placeholder
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      // Mock data item for now before we implement full dynamic questions
+      const payload = {
+        date,
+        inspector,
+        hq: hq || '미지정본부',
+        dept: dept || '미지정부서',
+        team: team || '미지정팀',
+        store: store || '미지정매장',
+        items: [
+          {
+            cat: currentCategory || '테스트 카테고리',
+            question: '가상의 테스트 질문 항목입니다.',
+            score: 3,
+            judgment: '양호',
+            remark: '비고 테스트',
+            photoUrl: ''
+          }
+        ]
+      };
+
+      const res = await fetch('/api/safety', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || '저장 실패');
+
+      setCurrentStep('stepSuccess');
+    } catch (err: any) {
+      alert('저장 중 오류가 발생했습니다:\n' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <div className="container min-h-screen relative pb-20">
@@ -156,7 +199,9 @@ export default function SafetyInspectionPage() {
           
           <div style={{ display: 'flex', gap: '10px' }}>
             <button className="btn-sub" style={{ flex: 1 }} onClick={() => setCurrentStep('step2')}>◀ 이전으로</button>
-            <button className="btn-main" style={{ flex: 1, background: 'var(--green)' }} onClick={() => setCurrentStep('stepSuccess')}>최종 제출</button>
+            <button className="btn-main" style={{ flex: 1, background: 'var(--green)' }} onClick={handleSubmit} disabled={isLoading}>
+                {isLoading ? '제출 중...' : '최종 제출'}
+            </button>
           </div>
         </div>
       )}
@@ -210,3 +255,4 @@ export default function SafetyInspectionPage() {
     </div>
   )
 }
+
