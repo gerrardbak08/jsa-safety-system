@@ -25,9 +25,44 @@ export default function AccidentInvestigationPage() {
   const [status, setStatus] = useState('미조치')
   const [comment, setComment] = useState('')
   
+  const [imgAgency, setImgAgency] = useState('')
+  const [isUploadingAgency, setIsUploadingAgency] = useState(false)
+  const [imgAction, setImgAction] = useState('')
+  const [isUploadingAction, setIsUploadingAction] = useState(false)
+
   const [isLoading, setIsLoading] = useState(false)
 
   const inspectors = ['Kang (안전)', 'Park (보건)', 'Park (안전)', 'Seo (안전)', 'Yoo (안전)', 'Yoon (보건)']
+
+  const handleAgencyUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setIsUploadingAgency(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'accident_agency');
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) setImgAgency(data.url);
+      else alert('Upload failed: ' + data.error);
+    } catch (err: any) { alert('Error: ' + err.message); } finally { setIsUploadingAgency(false); }
+  }
+
+  const handleActionUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setIsUploadingAction(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'accident_action');
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) setImgAction(data.url);
+      else alert('Upload failed: ' + data.error);
+    } catch (err: any) { alert('Error: ' + err.message); } finally { setIsUploadingAction(false); }
+  }
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -47,8 +82,8 @@ export default function AccidentInvestigationPage() {
         risk: riskGrade,
         status,
         comment,
-        imgAgency: '', // photo URLs handles later via Supabase Storage
-        imgAction: '',
+        imgAgency: imgAgency,
+        imgAction: imgAction,
       };
 
       const res = await fetch('/api/accident', {
@@ -163,8 +198,15 @@ export default function AccidentInvestigationPage() {
              
              <div className="jsa-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>📸 기인물 사진</span>
-                <button type="button" className="btn-sub" style={{ width: 'auto', padding: '5px 10px', margin: 0, fontSize: '12px' }}>➕ 사진 첨부</button>
+                {isUploadingAgency && <span style={{fontSize: '12px', color: '#c62828'}}>업로드 중...</span>}
+                <input type="file" id="agencyCam" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleAgencyUpload} />
+                <label htmlFor="agencyCam" className="btn-sub" style={{ width: 'auto', padding: '5px 10px', margin: 0, fontSize: '12px', cursor: 'pointer', display: 'inline-block' }}>➕ 사진 첨부</label>
              </div>
+             {imgAgency && (
+                <div style={{ marginTop: '10px' }}>
+                  <img src={imgAgency} alt="Preview" style={{ width: '100%', borderRadius: '8px', border: '1px solid #ddd' }} />
+                </div>
+             )}
              
              <div className="jsa-label">⚠️ 유해위험요인</div>
              <textarea className="remark" value={hazard} onChange={e => setHazard(e.target.value)} rows={3} placeholder="어떤 점이 위험했는지 작성하세요."></textarea>
@@ -187,8 +229,15 @@ export default function AccidentInvestigationPage() {
              
              <div className="jsa-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>📸 조치(이행) 결과 사진</span>
-                <button type="button" className="btn-sub" style={{ width: 'auto', padding: '5px 10px', margin: 0, fontSize: '12px' }}>➕ 추가</button>
+                {isUploadingAction && <span style={{fontSize: '12px', color: '#ff8f00'}}>업로드 중...</span>}
+                <input type="file" id="actionCam" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleActionUpload} />
+                <label htmlFor="actionCam" className="btn-sub" style={{ width: 'auto', padding: '5px 10px', margin: 0, fontSize: '12px', cursor: 'pointer', display: 'inline-block' }}>➕ 추가</label>
              </div>
+             {imgAction && (
+                <div style={{ marginTop: '10px' }}>
+                  <img src={imgAction} alt="Preview" style={{ width: '100%', borderRadius: '8px', border: '1px solid #ddd' }} />
+                </div>
+             )}
              
              <div className="jsa-label">📝 점검 의견</div>
              <textarea className="remark" value={comment} onChange={e => setComment(e.target.value)} rows={2} placeholder="점검자 의견을 입력하세요."></textarea>

@@ -1,4 +1,3 @@
-/// <reference types="google-apps-script" />
 
 // ----------------------------------------------------
 // 타입 정의 (TypeScript Interfaces)

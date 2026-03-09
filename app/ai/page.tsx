@@ -22,10 +22,26 @@ export default function AiAnalysisPage() {
   const [fullText, setFullText] = useState('')
   const [comment, setComment] = useState('')
   const [imageB64, setImageB64] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
 
   const [isLoading, setIsLoading] = useState(false)
 
   const inspectors = ['Kang (안전)', 'Park (보건)', 'Park (안전)', 'Seo (안전)', 'Yoo (안전)', 'Yoon (보건)']
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'ai_analysis');
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) setImageB64(data.url);
+      else alert('Upload failed: ' + data.error);
+    } catch (err: any) { alert('Error: ' + err.message); } finally { setIsUploading(false); }
+  }
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -110,8 +126,15 @@ export default function AiAnalysisPage() {
           
           <div className="jsa-label" style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>📸 1. 현장 작업 사진 (1장 등록)</span>
-            <button type="button" className="btn-sub" style={{ width: 'auto', padding: '5px 10px', margin: 0, fontSize: '12px' }}>➕ 사진 추가</button>
+            {isUploading && <span style={{fontSize: '12px', color: '#8e24aa'}}>업로드 중...</span>}
+            <input type="file" id="aiCam" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFileUpload} />
+            <label htmlFor="aiCam" className="btn-sub" style={{ width: 'auto', padding: '5px 10px', margin: 0, fontSize: '12px', cursor: 'pointer', display: 'inline-block' }}>➕ 사진 추가</label>
           </div>
+          {imageB64 && (
+            <div style={{ marginTop: '10px' }}>
+              <img src={imageB64} alt="Preview" style={{ width: '100%', borderRadius: '8px', border: '1px solid #ddd' }} />
+            </div>
+          )}
           
           <div className="jsa-label">🛠️ 2. 대상 작업명</div>
           <input type="text" value={taskName} onChange={e => setTaskName(e.target.value)} placeholder="예: 매대 하단 진열, 음료 박스 하차 등" />

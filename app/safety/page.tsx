@@ -18,6 +18,8 @@ export default function SafetyInspectionPage() {
   
   // Form State
   const [isLoading, setIsLoading] = useState(false)
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
 
   const inspectors = ['Kang (안전)', 'Park (안전)', 'Yoo (안전)', 'Seo (안전)', 'Park (보건)', 'Yoon (보건)']
   const categories = ["TBM", "넘어짐", "물체맞음", "떨어짐", "베임(칼)", "끼임", "깔림", "무리한동작", "기타 건강장해", "기타사항"]
@@ -33,6 +35,30 @@ export default function SafetyInspectionPage() {
   }
 
   const hqList = ['강북영업본부', '강남영업본부'] // Placeholder
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setIsUploading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'safety');
+      
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        setPhotoUrl(data.url);
+      } else {
+        alert('Upload failed: ' + data.error);
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  }
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -52,7 +78,7 @@ export default function SafetyInspectionPage() {
             score: 3,
             judgment: '양호',
             remark: '비고 테스트',
-            photoUrl: ''
+            photoUrl: photoUrl
           }
         ]
       };
@@ -227,8 +253,15 @@ export default function SafetyInspectionPage() {
              
              <div className="jsa-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', marginBottom: '5px' }}>
                 <span style={{ fontSize: '13px', color: '#555' }}>📸 현장 사진</span>
-                <button type="button" className="btn-sub" style={{ width: 'auto', padding: '5px 10px', margin: 0, fontSize: '12px' }}>➕ 사진 첨부</button>
+                {isUploading && <span style={{ fontSize: '12px', color: 'var(--blue)' }}>업로드 중...</span>}
+                <input type="file" id="camera" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFileUpload} />
+                <label htmlFor="camera" className="btn-sub" style={{ width: 'auto', padding: '5px 10px', margin: 0, fontSize: '12px', cursor: 'pointer', display: 'inline-block' }}>➕ 사진 첨부</label>
              </div>
+             {photoUrl && (
+                <div style={{ marginTop: '10px' }}>
+                  <img src={photoUrl} alt="Preview" style={{ width: '100%', borderRadius: '8px', border: '1px solid #ddd' }} />
+                </div>
+             )}
           </div>
           
           <div style={{ display: 'flex', gap: '10px' }}>

@@ -81,3 +81,12 @@ CREATE POLICY "Allow anonymous insert access" ON public.accident_investigations 
 
 CREATE POLICY "Allow anonymous read access" ON public.ai_muscle_analysis FOR SELECT TO anon USING (true);
 CREATE POLICY "Allow anonymous insert access" ON public.ai_muscle_analysis FOR INSERT TO anon WITH CHECK (true);
+
+-- 5. Storage Bucket 설정 (안전 점검용 이미지 버킷)
+-- (만약 SQL 실행 권한 부족 시 Supabase 대시보드 Storage 메뉴에서 수동으로 'safety-images' 버킷을 'Public'으로 생성하세요)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('safety-images', 'safety-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Allow anonymous uploads" ON storage.objects FOR INSERT TO anon WITH CHECK ( bucket_id = 'safety-images' );
+CREATE POLICY "Allow anonymous reads" ON storage.objects FOR SELECT TO anon USING ( bucket_id = 'safety-images' );
